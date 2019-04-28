@@ -22,6 +22,8 @@ neon_lakes  <- data.frame( # excluding `TOOK` in Alaska
   sf::st_as_sf(coords = c("api.decimalLongitude", "api.decimalLatitude"),
                crs = 4326)
 
+saveRDS(neon_lakes, "data/neon_lakes.rds")
+
 site_labels <- data.frame(siteID = neon_lakes$siteID,
                           sf::st_coordinates(neon_lakes),
                           stringsAsFactors = FALSE)
