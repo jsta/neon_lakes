@@ -63,7 +63,9 @@ ggplot() +
 sheet_path   <- "data/NEON_data_product_status.xlsx"
 get_if_not_exists("https://data.neonscience.org/documents/10179/11206/NEON_data_product_status/f82f959f-b53c-44cc-ad2b-70303ac6ddc3",
               sheet_path, overwrite = FALSE)
+
 dt           <- readxl::read_excel(sheet_path)
+fill_colors  <- tidyxl::xlsx_formats(sheet_path)$local$fill$patternFill$fgColor$rgb
 lake_columns <- data.frame(column_position = match(neon_lakes$siteID, names(dt)),
                            siteID = neon_lakes$siteID, stringsAsFactors = FALSE)
 dt           <- dt[,names(dt) %in% c("Name", "Code", "Supplier", neon_lakes$siteID)]
@@ -71,8 +73,6 @@ dt           <- tidyr::gather(dt, key = "siteID", value = "year",
                     -Name, -Code, -Supplier)
 dt$row       <- rep(2:157, 6)
 
-fill_colors <- tidyxl::xlsx_formats(
-  "data/NEON_data_product_status.xlsx")$local$fill$patternFill$fgColor$rgb
 
 dt_highlights <- lapply(seq_len(nrow(lake_columns)),
                         function(x) get_highlights(lake_columns$column_position[x],
@@ -80,6 +80,10 @@ dt_highlights <- lapply(seq_len(nrow(lake_columns)),
 dt_highlights <- dplyr::bind_rows(dt_highlights)
 
 dt <- left_join(dt, dt_highlights, by = c("siteID", "row"))
+dt <- dplyr::filter(dt, !is.na(character) & highlight)
+dt <- dplyr::select(dt, Name, siteID, year)
+dt <- distinct(dt, siteID, Name, .keep_all = TRUE)
+test <- tidyr::spread(dt, siteID, year)
 
 # Name siteID year highlight
 
