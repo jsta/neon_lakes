@@ -22,7 +22,7 @@ neon_lakes  <- data.frame( # excluding `TOOK` in Alaska
 neon_lakes <- geoNEON::def.extr.geo.os(neon_lakes, locCol = "siteID")
 ```
 
-![]()
+![](images/map.png)
 
 A key thing I want to explore in this post is: _**How much data is available at each site and what types of data are provided?**_
 
@@ -80,4 +80,4 @@ secchi <- neonUtilities::loadByProduct(dpID = "DP1.20252.001",
                                          check.size = FALSE)
 ```
                                      
-![]()
+![](images/secchi.png)
