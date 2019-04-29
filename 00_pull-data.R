@@ -6,6 +6,7 @@ library(ggrepel)
 library(maps)
 library(readxl)
 library(tidyxl)
+library(gt)
 
 library(neonUtilities)
 library(geoNEON) # install_github("NEONscience/NEON-geolocation", subdir = "geoNEON")
@@ -36,17 +37,19 @@ get_highlights <- function(col_num, col_name){
 
 states <- sf::st_as_sf(maps::map("state", plot = FALSE, fill = TRUE))
 
-neon_lakes  <- data.frame( # excluding `TOOK` in Alaska
-  siteID = c("CRAM", "SUGG", "BARC", "PRPO", "LIRO", "PRLA"),
-    stringsAsFactors = FALSE) %>%
-  geoNEON::def.extr.geo.os("siteID") %>%
-  mutate(api.decimalLatitude = as.numeric(api.decimalLatitude),
-         api.decimalLongitude = as.numeric(api.decimalLongitude)) %>%
-  sf::st_as_sf(coords = c("api.decimalLongitude", "api.decimalLatitude"),
-               crs = 4326)
+if(!file.exists("data/neon_lakes.rds")){
+  neon_lakes  <- data.frame( # excluding `TOOK` in Alaska
+    siteID = c("CRAM", "SUGG", "BARC", "PRPO", "LIRO", "PRLA"),
+      stringsAsFactors = FALSE) %>%
+    geoNEON::def.extr.geo.os("siteID") %>%
+    mutate(api.decimalLatitude = as.numeric(api.decimalLatitude),
+           api.decimalLongitude = as.numeric(api.decimalLongitude)) %>%
+    sf::st_as_sf(coords = c("api.decimalLongitude", "api.decimalLatitude"),
+                 crs = 4326)
 
-saveRDS(neon_lakes, "data/neon_lakes.rds")
-# neon_lakes <- readRDS("data/neon_lakes.rds")
+  saveRDS(neon_lakes, "data/neon_lakes.rds")
+}
+neon_lakes <- readRDS("data/neon_lakes.rds")
 
 site_labels <- data.frame(siteID = neon_lakes$siteID,
                           sf::st_coordinates(neon_lakes),
@@ -79,14 +82,32 @@ dt_highlights <- lapply(seq_len(nrow(lake_columns)),
                                                    lake_columns$siteID[x]))
 dt_highlights <- dplyr::bind_rows(dt_highlights)
 
-dt <- left_join(dt, dt_highlights, by = c("siteID", "row"))
-dt <- dplyr::filter(dt, !is.na(character) & highlight)
-dt <- dplyr::select(dt, Name, siteID, year)
-dt <- distinct(dt, siteID, Name, .keep_all = TRUE)
-test <- tidyr::spread(dt, siteID, year)
+dt_tidy <- dt %>%
+  left_join(dt_highlights, by = c("siteID", "row")) %>%
+  dplyr::filter(!is.na(character) & highlight & Supplier %in% c("AIS", "AOS")) %>%
+  dplyr::select(Name, siteID, year) %>%
+  distinct(siteID, Name, .keep_all = TRUE) %>%
+  tidyr::spread(siteID, year)
 
-# Name siteID year highlight
+dt_sum <- dt_tidy %>%
+  dplyr::select(BARC:SUGG) %>%
+  mutate_all(as.numeric) %>%
+  mutate(sum = rowSums(.))
 
+dt_tidy$sum <- dt_sum$sum
 
+dt_tidy <- arrange(dt_tidy, desc(sum)) %>%
+  dplyr::select(-sum)
+
+dt_tidy$Name <- factor(dt_tidy$Name, levels = dt_tidy$Name)
+
+gt(dt_tidy) %>%
+  data_color(columns = vars(Name),
+             colors = scales::col_factor(
+               palette = rev(c(
+                 "red", "orange", "green", "blue")),
+               domain = unique(dt_tidy$Name)
+               ))
 
 # ---- pull some specific data ----
+
