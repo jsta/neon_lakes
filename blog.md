@@ -81,4 +81,4 @@ secchi <- neonUtilities::loadByProduct(dpID = "DP1.20252.001",
                                      
 ![](images/secchi.png)
 
-It looks like although there are not a huge number of NEON lakes sites, the coverage in terms of monitoring variables within a given site is quite comprehensive. The `NEON` folks have done a great job making their data available via scripted access.
+It looks like although there are not huge numbers of NEON lake sites, the coverage in terms of monitoring variables within a given site is quite comprehensive. Also, the `NEON` folks have done a great job making their data available via scripted access.
