@@ -61,6 +61,7 @@ ggplot() +
   geom_text_repel(data = site_labels, aes(x = X, y = Y, label = siteID)) +
   theme_void() + coord_sf(datum = NA) +
   labs(color = '')
+ggsave("images/map.png")
 
 # ---- pull data availability table ----
 sheet_path   <- "data/NEON_data_product_status.xlsx"
@@ -71,11 +72,11 @@ dt           <- readxl::read_excel(sheet_path)
 fill_colors  <- tidyxl::xlsx_formats(sheet_path)$local$fill$patternFill$fgColor$rgb
 lake_columns <- data.frame(column_position = match(neon_lakes$siteID, names(dt)),
                            siteID = neon_lakes$siteID, stringsAsFactors = FALSE)
-dt           <- dt[,names(dt) %in% c("Name", "Code", "Supplier", neon_lakes$siteID)]
+dt           <- dt[,names(dt) %in% c("Name", "Code", "Supplier",
+                                     neon_lakes$siteID)]
 dt           <- tidyr::gather(dt, key = "siteID", value = "year",
                     -Name, -Code, -Supplier)
 dt$row       <- rep(2:157, 6)
-
 
 dt_highlights <- lapply(seq_len(nrow(lake_columns)),
                         function(x) get_highlights(lake_columns$column_position[x],
@@ -88,20 +89,24 @@ dt_tidy <- dt %>%
   dplyr::select(Name, siteID, year) %>%
   distinct(siteID, Name, .keep_all = TRUE) %>%
   tidyr::spread(siteID, year)
-
+# arrange rows by most to least recent
 dt_sum <- dt_tidy %>%
   dplyr::select(BARC:SUGG) %>%
   mutate_all(as.numeric) %>%
-  mutate(sum = rowSums(.))
-
-dt_tidy$sum <- dt_sum$sum
-
-dt_tidy <- arrange(dt_tidy, desc(sum)) %>%
+  mutate(sum = rowSums(., na.rm = TRUE))
+dt_tidy$sum  <- dt_sum$sum
+dt_tidy      <- arrange(dt_tidy, desc(sum)) %>%
   dplyr::select(-sum)
-
 dt_tidy$Name <- factor(dt_tidy$Name, levels = dt_tidy$Name)
 
-gt(dt_tidy) %>%
+# arrange columns by most to least sampled
+site_sum <- apply(dt_tidy[,2:ncol(dt_tidy)],
+      2, function(x) sum(as.numeric(x), na.rm = TRUE)) %>%
+  data.frame(site_sum = .)
+dt_tidy <- dt_tidy[,c(1, rev((order(site_sum$site_sum) + 1)))]
+
+dt_tidy %>%
+  gt() %>%
   data_color(columns = vars(Name),
              colors = scales::col_factor(
                palette = rev(c(
@@ -109,5 +114,26 @@ gt(dt_tidy) %>%
                domain = unique(dt_tidy$Name)
                ))
 
-# ---- pull some specific data ----
+knitr::kable(dt_tidy)
 
+# ---- pull some specific data ----
+if(!file.exists("data/secchi.rds")){
+  secchi <- neonUtilities::loadByProduct(dpID = "DP1.20252.001",
+                                         site = neon_lakes$siteID,
+                                         check.size = FALSE)
+
+  saveRDS(secchi, "data/secchi.rds")
+}
+secchi       <- readRDS("data/secchi.rds")$dep_secchi
+secchi_clean <- secchi %>%
+  mutate(date_parsed =
+           as.POSIXct(strftime(as.Date(date), format = "%Y-%m-%d")))
+
+ggplot(data = secchi_clean) +
+  geom_line(aes(x = date_parsed, y = secchiMeanDepth)) +
+  geom_point(aes(x = date_parsed, y = secchiMeanDepth)) +
+  facet_wrap(~siteID) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90),
+        axis.title.x = element_blank())
+ggsave("images/secchi.png")
