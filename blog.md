@@ -19,7 +19,7 @@ According to the [NEON documentation](https://www.neonscience.org/field-site-sub
 ```r
 neon_lakes  <- data.frame( # excluding `TOOK` in Alaska
     siteID = c("CRAM", "SUGG", "BARC", "PRPO", "LIRO", "PRLA"),
-      stringsAsFactors = FALSE) %>%
+      stringsAsFactors = FALSE) 
 neon_lakes <- geoNEON::def.extr.geo.os(neon_lakes, locCol = "siteID")
 ```
 
