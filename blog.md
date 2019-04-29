@@ -1,7 +1,8 @@
+# What is the scope of NEON lakes data?
 
 > Detailed setup files and runnable python scripts for reproducing this blog post are at: https://github.com/jsta/neon_lakes
 
-The NEON documentation lists lakes among their targeted ecosystems. However, NEON has provides so much data it can be difficult to get a grasp of their lake data apart from other ecosystems. Here, I show the scope of NEON lake data and how to get scripted access to it.
+The NEON documentation lists lakes among their targeted ecosystems. However, NEON provides so much data it can be difficult to get a grasp of their lake data apart from data collected in other ecosystems. Here, I show the scope of NEON lake data and how to get scripted access to it. In particular, I attempt to answer the question:  _**How much lake data is available through NEON and what types of data are provided?**_
 
 ## Dependencies
 
@@ -13,7 +14,7 @@ Before we begin, let's set up our `R` environment where the package dependencies
 
 ## Walkthrough
 
-According to the NEON documentation there are 7 NEON lake sites. We can start by mapping the location of these sites (we'll exclude `TOOK` in Alaska). We can pull the site coordinates using the `geoNEON` function `def.extr.geo.os`:
+According to the [NEON documentation](https://www.neonscience.org/field-site-subtype/lake), there are 7 NEON lake sites. We can start by mapping the location of these sites (we'll exclude `TOOK` in Alaska). We'll pull the coordinates for each site using the `geoNEON` function `def.extr.geo.os`:
 
 ```r
 neon_lakes  <- data.frame( # excluding `TOOK` in Alaska
@@ -24,9 +25,7 @@ neon_lakes <- geoNEON::def.extr.geo.os(neon_lakes, locCol = "siteID")
 
 ![](images/map.png)
 
-A key thing I want to explore in this post is: _**How much data is available at each site and what types of data are provided?**_
-
-NEON provides a [spreadsheet](https://data.neonscience.org/documents/10179/11206/NEON_data_product_status/f82f959f-b53c-44cc-ad2b-70303ac6ddc3) of data availability by type, site, and date. Here is a rendered table of this excel sheet filtered by lake sites. The table is sorted vertically (according to variable name) from most to least recently available and horizontally (according to lake site) from most comprehensive to least comprehensively monitored.
+NEON provides a [spreadsheet](https://data.neonscience.org/documents/10179/11206/NEON_data_product_status/f82f959f-b53c-44cc-ad2b-70303ac6ddc3) of data availability by type, site, and date where years represent the earliest year of data collection. Below, I've provided a rendered table of this excel sheet filtered by lake sites. The table is sorted vertically (according to variable name) from least to most data available and horizontally (according to lake site) from shortest to longest monitoring period. For example, `SUGG` secchi depth data is quite extensive whereas DNA barcoding data is fairly new and limited.
 
 |Name                                                          |BARC |CRAM |LIRO |PRLA |PRPO |SUGG |
 |:-------------------------------------------------------------|:----|:----|:----|:----|:----|:----|
@@ -72,12 +71,14 @@ NEON provides a [spreadsheet](https://data.neonscience.org/documents/10179/11206
 |Windspeed and direction on lakes on-buoy                      |2017 |NA   |NA   |NA   |NA   |NA   |
 
 
-Finally, we can pull the data for an arbitrary data product by finding its product ID code in the [NEON Data Product Catalog](https://data.neonscience.org/data-product-catalog) and feeding this ID to the `neonUtilities` function `loadByProduct`. Here I am pulling Secchi depth measurements from each of the 6 lake sites. 
+Let's pull data values for an arbitrary data product by finding its product ID code in the [NEON Data Product Catalog](https://data.neonscience.org/data-product-catalog) and feeding this ID to the `neonUtilities` function `loadByProduct`. Here, I pull Secchi depth measurements from each of our 6 lake sites. 
 
-```{r }
+```r 
 secchi <- neonUtilities::loadByProduct(dpID = "DP1.20252.001",
                                          site = neon_lakes$siteID,
                                          check.size = FALSE)
 ```
                                      
 ![](images/secchi.png)
+
+It looks like although there are not a huge number of NEON lakes sites, the coverage in terms of monitoring variables within a given site is quite comprehensive. The `NEON` folks have done a great job making their data available via scripted access.

@@ -7,6 +7,7 @@ library(maps)
 library(readxl)
 library(tidyxl)
 library(gt)
+library(magick)
 
 library(neonUtilities)
 library(geoNEON) # install_github("NEONscience/NEON-geolocation", subdir = "geoNEON")
@@ -60,8 +61,12 @@ ggplot() +
   geom_sf(data = neon_lakes, aes(color = Value.for.DURATION), alpha = 0.6) +
   geom_text_repel(data = site_labels, aes(x = X, y = Y, label = siteID)) +
   theme_void() + coord_sf(datum = NA) +
-  labs(color = '')
+  labs(color = '') +
+  theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
 ggsave("images/map.png")
+magick::image_read("images/map.png") %>%
+  magick::image_trim() %>%
+  magick::image_write("images/map.png")
 
 # ---- pull data availability table ----
 sheet_path   <- "data/NEON_data_product_status.xlsx"
