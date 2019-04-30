@@ -52,6 +52,8 @@ if(!file.exists("data/neon_lakes.rds")){
 }
 neon_lakes <- readRDS("data/neon_lakes.rds")
 
+knitr::kable(sf::st_drop_geometry(neon_lakes[,c("api.siteID", "api.description", "api.stateProvince")]))
+
 site_labels <- data.frame(siteID = neon_lakes$siteID,
                           sf::st_coordinates(neon_lakes),
                           stringsAsFactors = FALSE)
