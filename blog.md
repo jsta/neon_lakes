@@ -32,7 +32,7 @@ neon_lakes <- geoNEON::def.extr.geo.os(neon_lakes, locCol = "siteID")
 |LIRO       |Little Rock Lake Site, RELOCATABLE                           |WI                |
 |PRLA       |Prairie Lake at Dakota Coteau Field School Site, RELOCATABLE |ND                |
 
-![](images/map.png)
+![](images/nl_map.png)
 
 NEON provides a [spreadsheet](https://data.neonscience.org/documents/10179/11206/NEON_data_product_status/f82f959f-b53c-44cc-ad2b-70303ac6ddc3) of data availability by type, site, and date where years represent the earliest year of data collection. Below, I've provided a rendered table of this excel sheet filtered by lake sites. The table is sorted vertically (according to variable name) from least to most data available and horizontally (according to lake site) from shortest to longest monitoring period. For example, `SUGG` secchi depth data is quite extensive whereas DNA barcoding data is fairly new and limited.
 
@@ -88,6 +88,6 @@ secchi <- neonUtilities::loadByProduct(dpID = "DP1.20252.001",
                                          check.size = FALSE)
 ```
                                      
-![](images/secchi.png)
+![](images/nl_secchi.png)
 
 It looks like although there are not huge numbers of NEON lake sites, the coverage in terms of monitoring variables within a given site is quite comprehensive. Also, the `NEON` folks have done a great job making their data available via scripted access.

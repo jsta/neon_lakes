@@ -65,10 +65,10 @@ ggplot() +
   theme_void() + coord_sf(datum = NA) +
   labs(color = '') +
   theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
-ggsave("images/map.png")
-magick::image_read("images/map.png") %>%
+ggsave("images/nl_map.png")
+magick::image_read("images/nl_map.png") %>%
   magick::image_trim() %>%
-  magick::image_write("images/map.png")
+  magick::image_write("images/nl_map.png")
 
 # ---- pull data availability table ----
 sheet_path   <- "data/NEON_data_product_status.xlsx"
@@ -143,4 +143,4 @@ ggplot(data = secchi_clean) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90),
         axis.title.x = element_blank())
-ggsave("images/secchi.png")
+ggsave("images/nl_secchi.png")
